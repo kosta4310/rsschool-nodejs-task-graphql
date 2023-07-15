@@ -8,22 +8,15 @@ import {
   GraphQLObjectType,
   GraphQLString,
 } from 'graphql';
-import { UserType } from './queries.js';
-import { FastifyInstance } from 'fastify';
+import { PostInputType, UserInputType, UserType } from './types.js';
+import { FastifyInstance } from 'fastify/types/instance.js';
 
 export const MutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
     createUser,
+    createPost,
   }),
-});
-
-export const UserInputType = new GraphQLInputObjectType({
-  name: 'UserInput',
-  fields: {
-    name: { type: new GraphQLNonNull(GraphQLString) },
-    balance: { type: new GraphQLNonNull(GraphQLFloat) },
-  },
 });
 
 const createUser = {
@@ -31,8 +24,17 @@ const createUser = {
   args: {
     data: { type: new GraphQLNonNull(UserInputType) },
   },
-
   resolve: async (_source: any, args: any, { prisma }: FastifyInstance) => {
     return await prisma.user.create(args);
+  },
+};
+
+const createPost = {
+  type: 'PostType',
+  args: {
+    data: { type: new GraphQLNonNull(PostInputType) },
+  },
+  resolve: async (source: any, args: any, { prisma }: FastifyInstance) => {
+    return await prisma.post.create(args);
   },
 };

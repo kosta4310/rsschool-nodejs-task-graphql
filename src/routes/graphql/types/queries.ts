@@ -8,21 +8,13 @@ import {
   GraphQLString,
 } from 'graphql';
 import '../../../plugins/db.js';
-import { FastifyInstance } from 'fastify';
+import { UserType } from './types.js';
+import { FastifyInstance } from 'fastify/types/instance.js';
 
 export const QueryType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
     users,
-  }),
-});
-
-export const UserType = new GraphQLObjectType({
-  name: 'User',
-  fields: () => ({
-    name: { type: GraphQLString },
-    id: { type: new GraphQLNonNull(GraphQLID) },
-    balance: { type: GraphQLFloat },
   }),
 });
 
@@ -32,12 +24,3 @@ export const users = {
     return await prisma.user.findMany();
   },
 };
-
-export const memberTypeType = new GraphQLObjectType({
-  name: 'MemberType',
-  fields: () => ({
-    id: { type: GraphQLString },
-    discont: { type: GraphQLFloat },
-    postsLimitPerMonth: { type: GraphQLInt },
-  }),
-});
