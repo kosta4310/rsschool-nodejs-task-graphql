@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { FastifyInstance } from 'fastify/types/instance.js';
 import {
   GraphQLFloat,
@@ -11,6 +8,8 @@ import {
   GraphQLObjectType,
   GraphQLString,
 } from 'graphql';
+type PostEntity = { id: string; title: string; content: string; authorId: string };
+export type UserEntity = { id: string; balance: number; name: string };
 
 export const UserType = new GraphQLObjectType({
   name: 'User',
@@ -39,7 +38,11 @@ export const PostType = new GraphQLObjectType({
     authorId: { type: GraphQLString },
     user: {
       type: UserType,
-      resolve: async (source: any, args: any, { prisma }: FastifyInstance) => {
+      resolve: async (
+        source: PostEntity,
+        args: Omit<PostEntity, 'id'>,
+        { prisma }: FastifyInstance,
+      ) => {
         return await prisma.user.findUnique({ where: { id: source.authorId } });
       },
     },

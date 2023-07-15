@@ -7,7 +7,6 @@ import {
   GraphQLObjectType,
   GraphQLString,
 } from 'graphql';
-import '../../../plugins/db.js';
 import { UserType } from './types.js';
 import { FastifyInstance } from 'fastify/types/instance.js';
 
