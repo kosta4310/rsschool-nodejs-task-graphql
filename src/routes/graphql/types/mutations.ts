@@ -6,13 +6,12 @@ import {
   GraphQLString,
 } from 'graphql';
 import { PostInputType, PostType, UserEntity, UserInputType, UserType } from './types.js';
-import { FastifyInstance } from 'fastify/types/instance.js';
+import { FastifyInstance } from 'fastify';
 
 export const MutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
     createUser,
-    // createUser2,
     createPost,
   }),
 });
