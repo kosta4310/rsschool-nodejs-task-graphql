@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { GraphQLID, GraphQLList, GraphQLNonNull, GraphQLObjectType } from 'graphql';
 import { MemberTypeType, PostType, ProfileType, UserType } from './types.js';
 import { FastifyInstance } from 'fastify';

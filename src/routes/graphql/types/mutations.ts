@@ -1,10 +1,5 @@
-import {
-  GraphQLFloat,
-  GraphQLInputObjectType,
-  GraphQLNonNull,
-  GraphQLObjectType,
-  GraphQLString,
-} from 'graphql';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { GraphQLNonNull, GraphQLObjectType } from 'graphql';
 import { PostInputType, PostType, UserEntity, UserInputType, UserType } from './types.js';
 import { FastifyInstance } from 'fastify';
 

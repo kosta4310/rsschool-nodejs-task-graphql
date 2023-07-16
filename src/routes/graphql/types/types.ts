@@ -53,7 +53,19 @@ export const UserType = new GraphQLObjectType({
         return await prisma.user.findMany({ where: { id: { in: arr } } });
       },
     },
-    subscribedToUser,
+
+    subscribedToUser: {
+      type: new GraphQLList(UserType),
+      resolve: async ({ id }: UserEntity, _args: any, { prisma }: FastifyInstance) => {
+        const array = await prisma.subscribersOnAuthors.findMany({
+          where: { authorId: id },
+        });
+        const arr = array.map(
+          (item) => item.subscriberId,
+        ); /*массив ID подписчиков на юзера*/
+        return await prisma.user.findMany({ where: { id: { in: arr } } });
+      },
+    },
   }),
 });
 
