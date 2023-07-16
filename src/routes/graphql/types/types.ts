@@ -144,7 +144,7 @@ const SubscribersOnAuthorsType = new GraphQLObjectType({
   fields: () => ({
     subscriberId: { type: GraphQLID },
     authorId: { type: GraphQLID },
-    subsriber: {
+    subscriber: {
       type: UserType,
       resolve: async (
         { subscriberId }: SubscribersOnAuthorsEntity,
