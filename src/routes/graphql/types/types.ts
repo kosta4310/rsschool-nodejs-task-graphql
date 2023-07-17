@@ -13,6 +13,7 @@ import {
   GraphQLString,
 } from 'graphql';
 import { MemberTypeId } from '../../member-types/schemas.js';
+import { UUIDType } from './uuid.js';
 type PostEntity = { id: string; title: string; content: string; authorId: string };
 export type UserEntity = { id: string; balance: number; name: string };
 type ProfileEntity = {
@@ -27,10 +28,7 @@ type MemberTypeEntity = {
   discount: number;
   postsLimitPerMonth: number;
 };
-// export enum MemberTypeId {
-//   BASIC = 'basic',
-//   BUSINESS = 'business',
-// }
+
 type SubscribersOnAuthorsEntity = { subscriberId: string; authorId: string };
 
 export const MemberTypeIdType = new GraphQLEnumType({
@@ -49,19 +47,31 @@ export const UserType = new GraphQLObjectType({
     balance: { type: GraphQLFloat },
     posts: {
       type: new GraphQLList(PostType),
-      resolve: async ({ id }: UserEntity, _args: any, { prisma }: FastifyInstance) => {
+      resolve: async (
+        { id }: UserEntity,
+        _args: unknown,
+        { prisma }: FastifyInstance,
+      ) => {
         return await prisma.post.findMany({ where: { authorId: id } });
       },
     },
     profile: {
       type: ProfileType,
-      resolve: async ({ id }: UserEntity, _args: any, { prisma }: FastifyInstance) => {
+      resolve: async (
+        { id }: UserEntity,
+        _args: unknown,
+        { prisma }: FastifyInstance,
+      ) => {
         return await prisma.profile.findUnique({ where: { userId: id } });
       },
     },
     userSubscribedTo: {
       type: new GraphQLList(UserType),
-      resolve: async ({ id }: UserEntity, _args: any, { prisma }: FastifyInstance) => {
+      resolve: async (
+        { id }: UserEntity,
+        _args: unknown,
+        { prisma }: FastifyInstance,
+      ) => {
         const array = await prisma.subscribersOnAuthors.findMany({
           where: { subscriberId: id },
         });
@@ -74,7 +84,11 @@ export const UserType = new GraphQLObjectType({
 
     subscribedToUser: {
       type: new GraphQLList(UserType),
-      resolve: async ({ id }: UserEntity, _args: any, { prisma }: FastifyInstance) => {
+      resolve: async (
+        { id }: UserEntity,
+        _args: unknown,
+        { prisma }: FastifyInstance,
+      ) => {
         const array = await prisma.subscribersOnAuthors.findMany({
           where: { authorId: id },
         });
@@ -97,7 +111,7 @@ export const MemberTypeType = new GraphQLObjectType({
       type: new GraphQLList(ProfileType),
       resolve: async (
         { id }: MemberTypeEntity,
-        _args: any,
+        _args: unknown,
         { prisma }: FastifyInstance,
       ) => {
         return await prisma.profile.findMany({ where: { memberTypeId: id } });
@@ -138,7 +152,7 @@ export const ProfileType = new GraphQLObjectType({
       type: UserType,
       resolve: async (
         { userId }: ProfileEntity,
-        _args: any,
+        _args: unknown,
         { prisma }: FastifyInstance,
       ) => {
         return await prisma.user.findUnique({ where: { id: userId } });
@@ -148,7 +162,7 @@ export const ProfileType = new GraphQLObjectType({
       type: MemberTypeType,
       resolve: async (
         { memberTypeId }: ProfileEntity,
-        _args: any,
+        _args: unknown,
         { prisma }: FastifyInstance,
       ) => {
         return await prisma.memberType.findUnique({ where: { id: memberTypeId } });
@@ -166,7 +180,7 @@ const SubscribersOnAuthorsType = new GraphQLObjectType({
       type: UserType,
       resolve: async (
         { subscriberId }: SubscribersOnAuthorsEntity,
-        _args: any,
+        _args: unknown,
         { prisma }: FastifyInstance,
       ) => {
         return await prisma.user.findUnique({ where: { id: subscriberId } });
@@ -176,7 +190,7 @@ const SubscribersOnAuthorsType = new GraphQLObjectType({
       type: UserType,
       resolve: async (
         { authorId }: SubscribersOnAuthorsEntity,
-        _args: any,
+        _args: unknown,
         { prisma }: FastifyInstance,
       ) => {
         return await prisma.user.findUnique({ where: { id: authorId } });
@@ -200,6 +214,6 @@ export const PostInputType = new GraphQLInputObjectType({
   fields: () => ({
     title: { type: GraphQLString },
     content: { type: GraphQLString },
-    authorId: { type: GraphQLString },
+    authorId: { type: UUIDType },
   }),
 });
