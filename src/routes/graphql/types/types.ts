@@ -2,6 +2,7 @@
 import { FastifyInstance } from 'fastify/types/instance.js';
 import {
   GraphQLBoolean,
+  GraphQLEnumType,
   GraphQLFloat,
   GraphQLID,
   GraphQLInputObjectType,
@@ -11,17 +12,34 @@ import {
   GraphQLObjectType,
   GraphQLString,
 } from 'graphql';
+import { MemberTypeId } from '../../member-types/schemas.js';
 type PostEntity = { id: string; title: string; content: string; authorId: string };
 export type UserEntity = { id: string; balance: number; name: string };
 type ProfileEntity = {
   id: string;
   isMale: boolean;
   yearOfBirth: number;
-  memberTypeId: string;
+  memberTypeId: MemberTypeId;
   userId: string;
 };
-type MemberTypeEntity = { id: string; discount: number; postsLimitPerMonth: number };
+type MemberTypeEntity = {
+  id: MemberTypeId;
+  discount: number;
+  postsLimitPerMonth: number;
+};
+// export enum MemberTypeId {
+//   BASIC = 'basic',
+//   BUSINESS = 'business',
+// }
 type SubscribersOnAuthorsEntity = { subscriberId: string; authorId: string };
+
+export const MemberTypeIdType = new GraphQLEnumType({
+  name: 'MemberTypeId',
+  values: {
+    basic: { value: 'basic' },
+    business: { value: 'business' },
+  },
+});
 
 export const UserType = new GraphQLObjectType({
   name: 'User',
@@ -72,7 +90,7 @@ export const UserType = new GraphQLObjectType({
 export const MemberTypeType = new GraphQLObjectType({
   name: 'MemberType',
   fields: () => ({
-    id: { type: GraphQLID },
+    id: { type: MemberTypeIdType },
     discount: { type: GraphQLFloat },
     postsLimitPerMonth: { type: GraphQLInt },
     profiles: {
@@ -115,7 +133,7 @@ export const ProfileType = new GraphQLObjectType({
     isMale: { type: GraphQLBoolean },
     yearOfBirth: { type: GraphQLInt },
     userId: { type: GraphQLString },
-    memberTypeId: { type: GraphQLString },
+    memberTypeId: { type: MemberTypeIdType },
     user: {
       type: UserType,
       resolve: async (
