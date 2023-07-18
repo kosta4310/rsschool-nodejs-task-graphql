@@ -182,10 +182,18 @@ const subscribeTo = {
     { userId, authorId }: { userId: string; authorId: string },
     { prisma }: FastifyInstance,
   ) => {
-    await prisma.subscribersOnAuthors.create({
-      data: { subscriberId: userId, authorId },
+    return prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        userSubscribedTo: {
+          create: {
+            authorId: authorId,
+          },
+        },
+      },
     });
-    return { id: userId };
   },
 };
 
