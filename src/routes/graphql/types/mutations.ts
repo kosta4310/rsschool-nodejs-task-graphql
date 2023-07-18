@@ -29,6 +29,8 @@ export const MutationType = new GraphQLObjectType({
     changePost,
     changeProfile,
     changeUser,
+    subscribeTo,
+    unsubscribeFrom,
   }),
 });
 
@@ -166,5 +168,41 @@ const changeUser = {
       where: { id },
       data: dto,
     });
+  },
+};
+
+const subscribeTo = {
+  type: UserType,
+  args: {
+    userId: { type: new GraphQLNonNull(UUIDType) },
+    authorId: { type: new GraphQLNonNull(UUIDType) },
+  },
+  resolve: async (
+    _source: unknown,
+    { userId, authorId }: { userId: string; authorId: string },
+    { prisma }: FastifyInstance,
+  ) => {
+    await prisma.subscribersOnAuthors.create({
+      data: { subscriberId: userId, authorId },
+    });
+    return { id: userId };
+  },
+};
+
+const unsubscribeFrom = {
+  type: GraphQLBoolean,
+  args: {
+    userId: { type: new GraphQLNonNull(UUIDType) },
+    authorId: { type: new GraphQLNonNull(UUIDType) },
+  },
+  resolve: async (
+    _source: unknown,
+    { userId, authorId }: { userId: string; authorId: string },
+    { prisma }: FastifyInstance,
+  ) => {
+    const res = await prisma.subscribersOnAuthors.delete({
+      where: { subscriberId_authorId: { subscriberId: userId, authorId } },
+    });
+    return res ? true : false;
   },
 };
