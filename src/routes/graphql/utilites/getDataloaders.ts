@@ -23,13 +23,14 @@ export function getDataloaders(
     );
   }
 
-  async function postBatchFunction(keys: unknown) {
+  async function postBatchFunction(userIds: unknown) {
     const results = await fastify.prisma.post.findMany({
-      where: { id: { in: keys as Array<string> } },
+      where: { authorId: { in: userIds as Array<string> } },
     });
-    return (keys as Array<string>).map(
-      (key) =>
-        results.find((post) => post.id === key) || new Error(`No result for ${key}`),
+    console.log('result', results);
+
+    return (userIds as Array<string>).map((userId) =>
+      results.find(({ authorId }) => authorId === userId),
     );
   }
 

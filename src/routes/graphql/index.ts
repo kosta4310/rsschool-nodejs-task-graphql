@@ -20,7 +20,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
 
       const dataloaders = getDataloaders(fastify);
 
-      const { data } = await graphql({
+      const res = await graphql({
         schema,
         source: String(req.body.query),
         contextValue: { fastify, dataloaders },
@@ -30,7 +30,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
       if (errors.length) {
         return { errors };
       }
-      return { data };
+      return res;
     },
   });
 };

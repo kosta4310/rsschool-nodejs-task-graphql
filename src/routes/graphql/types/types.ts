@@ -61,9 +61,10 @@ export const UserType = new GraphQLObjectType({
       resolve: async (
         { id }: UserEntity,
         _args: unknown,
-        { fastify: { prisma } }: ContextValue,
+        { fastify: { prisma }, dataloaders }: ContextValue,
       ) => {
-        return await prisma.post.findMany({ where: { authorId: id } });
+        // return await prisma.post.findMany({ where: { authorId: id } });
+        return await dataloaders.postDataloader.load(id);
       },
     },
     profile: {
