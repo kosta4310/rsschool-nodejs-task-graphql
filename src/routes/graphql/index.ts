@@ -16,7 +16,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
     async handler(req) {
       const errors = validate(schema, parse(req.body.query), [depthLimit(5)]);
 
-      const { data } = await graphql({
+      const res = await graphql({
         schema,
         source: String(req.body.query),
         contextValue: fastify,
@@ -26,7 +26,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
       if (errors.length) {
         return { errors };
       }
-      return { data };
+      return res;
     },
   });
 };
