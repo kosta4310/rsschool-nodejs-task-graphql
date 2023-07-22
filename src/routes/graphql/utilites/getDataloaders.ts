@@ -27,21 +27,18 @@ export function getDataloaders(
     const results = await fastify.prisma.post.findMany({
       where: { authorId: { in: userIds as Array<string> } },
     });
-    console.log('result', results);
 
     return (userIds as Array<string>).map((userId) =>
-      results.find(({ authorId }) => authorId === userId),
+      results.filter(({ authorId }) => authorId === userId),
     );
   }
 
-  async function profileBatchFunction(keys: unknown) {
+  async function profileBatchFunction(userIds: unknown) {
     const results = await fastify.prisma.profile.findMany({
-      where: { id: { in: keys as Array<string> } },
+      where: { userId: { in: userIds as Array<string> } },
     });
-    return (keys as Array<string>).map(
-      (key) =>
-        results.find((profile) => profile.id === key) ||
-        new Error(`No result for ${key}`),
+    return (userIds as Array<string>).map((key) =>
+      results.find((profile) => profile.userId === key),
     );
   }
 
@@ -56,27 +53,53 @@ export function getDataloaders(
     );
   }
 
+  async function userSubscribedToBatchFunction(userIds: unknown) {
+    const results = await fastify.prisma.subscribersOnAuthors.findMany({
+      where: { subscriberId: { in: userIds as Array<string> } },
+    });
+
+    return (userIds as Array<string>).map((userId) =>
+      results.filter(({ subscriberId }) => subscriberId === userId),
+    );
+  }
+
+  async function subscribedToUserBatchFunction(userIds: unknown) {
+    const results = await fastify.prisma.subscribersOnAuthors.findMany({
+      where: { authorId: { in: userIds as Array<string> } },
+    });
+
+    return (userIds as Array<string>).map((userId) =>
+      results.filter(({ authorId }) => authorId === userId),
+    );
+  }
+
   const userDataloader = new DataLoader(userBatchFunction);
   const postDataloader = new DataLoader(postBatchFunction);
   const profileDataloader = new DataLoader(profileBatchFunction);
   const memberTypesDataloader = new DataLoader(memberTypesBatchFunction);
+  const userSubscribedToDataloader = new DataLoader(userSubscribedToBatchFunction);
+  const subscribedToUserDataloader = new DataLoader(subscribedToUserBatchFunction);
 
   const dataloaders: {
     userDataloader: DataLoader<unknown, unknown, unknown>;
     postDataloader: DataLoader<unknown, unknown, unknown>;
     profileDataloader: DataLoader<unknown, unknown, unknown>;
     memberTypesDataloader: DataLoader<unknown, unknown, unknown>;
+    userSubscribedToDataloader: DataLoader<unknown, unknown, unknown>;
+    subscribedToUserDataloader: DataLoader<unknown, unknown, unknown>;
   } = {
-    userDataloader: userDataloader,
-    postDataloader: postDataloader,
-    profileDataloader: profileDataloader,
-    memberTypesDataloader: memberTypesDataloader,
+    userDataloader,
+    postDataloader,
+    profileDataloader,
+    memberTypesDataloader,
+    userSubscribedToDataloader,
+    subscribedToUserDataloader,
   };
 
-  dataloaders.userDataloader = userDataloader;
-  dataloaders.postDataloader = postDataloader;
-  dataloaders.profileDataloader = profileDataloader;
-  dataloaders.memberTypesDataloader = memberTypesDataloader;
+  // dataloaders.userDataloader = userDataloader;
+  // dataloaders.postDataloader = postDataloader;
+  // dataloaders.profileDataloader = profileDataloader;
+  // dataloaders.memberTypesDataloader = memberTypesDataloader;
 
   return dataloaders;
 }

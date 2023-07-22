@@ -72,9 +72,10 @@ export const UserType = new GraphQLObjectType({
       resolve: async (
         { id }: UserEntity,
         _args: unknown,
-        { fastify: { prisma } }: ContextValue,
+        { fastify: { prisma }, dataloaders }: ContextValue,
       ) => {
-        return await prisma.profile.findUnique({ where: { userId: id } });
+        // return await prisma.profile.findUnique({ where: { userId: id } });
+        return await dataloaders.profileDataloader.load(id);
       },
     },
     userSubscribedTo: {
