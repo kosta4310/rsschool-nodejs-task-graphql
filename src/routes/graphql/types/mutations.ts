@@ -13,6 +13,7 @@ import {
   ChangePostInputType,
   ChangeProfileInputType,
   ChangeUserInputType,
+  ContextValue,
 } from './types.js';
 import { FastifyInstance } from 'fastify';
 import { UUIDType } from './uuid.js';
@@ -42,7 +43,7 @@ const createUser = {
   resolve: async (
     _source: unknown,
     { dto }: { dto: Omit<UserEntity, 'id'> },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     return await prisma.user.create({ data: dto });
   },
@@ -56,7 +57,7 @@ const createPost = {
   resolve: async (
     _source: unknown,
     { dto }: { dto: Omit<PostEntity, 'id'> },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     return await prisma.post.create({ data: dto });
   },
@@ -70,7 +71,7 @@ const createProfile = {
   resolve: async (
     _source: unknown,
     { dto }: { dto: Omit<ProfileEntity, 'id'> },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     return await prisma.profile.create({ data: dto });
   },
@@ -82,7 +83,7 @@ const deletePost = {
   resolve: async (
     _source: unknown,
     { id }: { id: string },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     const res = await prisma.post.delete({ where: { id } });
     return res ? true : false;
@@ -95,7 +96,7 @@ const deleteUser = {
   resolve: async (
     _source: unknown,
     { id }: { id: string },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     const res = await prisma.user.delete({ where: { id } });
     return res ? true : false;
@@ -108,7 +109,7 @@ const deleteProfile = {
   resolve: async (
     _source: unknown,
     { id }: { id: string },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     const res = await prisma.profile.delete({ where: { id } });
     return res ? true : false;
@@ -126,7 +127,7 @@ const changePost = {
   resolve: async (
     _source: unknown,
     { id, dto }: { id: string; dto: Partial<Omit<PostEntity, 'id' & 'authorId'>> },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     return await prisma.post.update({
       where: { id },
@@ -144,7 +145,7 @@ const changeProfile = {
   resolve: async (
     _source: unknown,
     { id, dto }: { id: string; dto: Partial<Omit<ProfileEntity, 'id' & 'userId'>> },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     return await prisma.profile.update({
       where: { id },
@@ -162,7 +163,7 @@ const changeUser = {
   resolve: async (
     _source: unknown,
     { id, dto }: { id: string; dto: Partial<Omit<UserEntity, 'id'>> },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     return await prisma.user.update({
       where: { id },
@@ -180,7 +181,7 @@ const subscribeTo = {
   resolve: async (
     _source: unknown,
     { userId, authorId }: { userId: string; authorId: string },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     return prisma.user.update({
       where: {
@@ -206,7 +207,7 @@ const unsubscribeFrom = {
   resolve: async (
     _source: unknown,
     { userId, authorId }: { userId: string; authorId: string },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     const res = await prisma.subscribersOnAuthors.delete({
       where: { subscriberId_authorId: { subscriberId: userId, authorId } },

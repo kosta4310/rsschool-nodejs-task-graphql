@@ -14,6 +14,8 @@ import {
 } from 'graphql';
 import { MemberTypeId } from '../../member-types/schemas.js';
 import { UUIDType } from './uuid.js';
+import DataLoader from 'dataloader';
+
 export type PostEntity = { id: string; title: string; content: string; authorId: string };
 export type UserEntity = { id: string; balance: number; name: string };
 export type ProfileEntity = {
@@ -29,6 +31,15 @@ type MemberTypeEntity = {
   postsLimitPerMonth: number;
 };
 
+export type ContextValue = {
+  fastify: FastifyInstance;
+  dataloaders: {
+    userDataloader: DataLoader<unknown, unknown, unknown>;
+    postDataloader: DataLoader<unknown, unknown, unknown>;
+    profileDataloader: DataLoader<unknown, unknown, unknown>;
+    memberTypesDataloader: DataLoader<unknown, unknown, unknown>;
+  };
+};
 type SubscribersOnAuthorsEntity = { subscriberId: string; authorId: string };
 
 export const MemberTypeIdType = new GraphQLEnumType({
@@ -50,7 +61,7 @@ export const UserType = new GraphQLObjectType({
       resolve: async (
         { id }: UserEntity,
         _args: unknown,
-        { prisma }: FastifyInstance,
+        { fastify: { prisma } }: ContextValue,
       ) => {
         return await prisma.post.findMany({ where: { authorId: id } });
       },
@@ -60,7 +71,7 @@ export const UserType = new GraphQLObjectType({
       resolve: async (
         { id }: UserEntity,
         _args: unknown,
-        { prisma }: FastifyInstance,
+        { fastify: { prisma } }: ContextValue,
       ) => {
         return await prisma.profile.findUnique({ where: { userId: id } });
       },
@@ -70,7 +81,7 @@ export const UserType = new GraphQLObjectType({
       resolve: async (
         { id }: UserEntity,
         _args: unknown,
-        { prisma }: FastifyInstance,
+        { fastify: { prisma } }: ContextValue,
       ) => {
         const array = await prisma.subscribersOnAuthors.findMany({
           where: { subscriberId: id },
@@ -87,7 +98,7 @@ export const UserType = new GraphQLObjectType({
       resolve: async (
         { id }: UserEntity,
         _args: unknown,
-        { prisma }: FastifyInstance,
+        { fastify: { prisma } }: ContextValue,
       ) => {
         const array = await prisma.subscribersOnAuthors.findMany({
           where: { authorId: id },
@@ -112,7 +123,7 @@ export const MemberTypeType = new GraphQLObjectType({
       resolve: async (
         { id }: MemberTypeEntity,
         _args: unknown,
-        { prisma }: FastifyInstance,
+        { fastify: { prisma } }: ContextValue,
       ) => {
         return await prisma.profile.findMany({ where: { memberTypeId: id } });
       },
@@ -132,7 +143,7 @@ export const PostType = new GraphQLObjectType({
       resolve: async (
         { authorId }: PostEntity,
         _args: Omit<PostEntity, 'id'>,
-        { prisma }: FastifyInstance,
+        { fastify: { prisma } }: ContextValue,
       ) => {
         return await prisma.user.findUnique({ where: { id: authorId } });
       },
@@ -153,7 +164,7 @@ export const ProfileType = new GraphQLObjectType({
       resolve: async (
         { userId }: ProfileEntity,
         _args: unknown,
-        { prisma }: FastifyInstance,
+        { fastify: { prisma } }: ContextValue,
       ) => {
         return await prisma.user.findUnique({ where: { id: userId } });
       },
@@ -163,7 +174,7 @@ export const ProfileType = new GraphQLObjectType({
       resolve: async (
         { memberTypeId }: ProfileEntity,
         _args: unknown,
-        { prisma }: FastifyInstance,
+        { fastify: { prisma } }: ContextValue,
       ) => {
         return await prisma.memberType.findUnique({ where: { id: memberTypeId } });
       },
@@ -181,7 +192,7 @@ const SubscribersOnAuthorsType = new GraphQLObjectType({
       resolve: async (
         { subscriberId }: SubscribersOnAuthorsEntity,
         _args: unknown,
-        { prisma }: FastifyInstance,
+        { fastify: { prisma } }: ContextValue,
       ) => {
         return await prisma.user.findUnique({ where: { id: subscriberId } });
       },
@@ -191,7 +202,7 @@ const SubscribersOnAuthorsType = new GraphQLObjectType({
       resolve: async (
         { authorId }: SubscribersOnAuthorsEntity,
         _args: unknown,
-        { prisma }: FastifyInstance,
+        { fastify: { prisma } }: ContextValue,
       ) => {
         return await prisma.user.findUnique({ where: { id: authorId } });
       },
