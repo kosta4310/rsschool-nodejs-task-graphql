@@ -4,6 +4,14 @@ import DataLoader from 'dataloader';
 import { FastifyBaseLogger, FastifyInstance, RawServerDefault } from 'fastify';
 import { IncomingMessage, ServerResponse } from 'node:http';
 
+export type DataloadersType = {
+  userDataloader: DataLoader<unknown, unknown, unknown>;
+  postDataloader: DataLoader<unknown, unknown, unknown>;
+  profileDataloader: DataLoader<unknown, unknown, unknown>;
+  memberTypesDataloader: DataLoader<unknown, unknown, unknown>;
+  userSubscribedToDataloader: DataLoader<unknown, unknown, unknown>;
+  subscribedToUserDataloader: DataLoader<unknown, unknown, unknown>;
+};
 export function getDataloaders(
   fastify: FastifyInstance<
     RawServerDefault,
@@ -80,14 +88,7 @@ export function getDataloaders(
   const userSubscribedToDataloader = new DataLoader(userSubscribedToBatchFunction);
   const subscribedToUserDataloader = new DataLoader(subscribedToUserBatchFunction);
 
-  const dataloaders: {
-    userDataloader: DataLoader<unknown, unknown, unknown>;
-    postDataloader: DataLoader<unknown, unknown, unknown>;
-    profileDataloader: DataLoader<unknown, unknown, unknown>;
-    memberTypesDataloader: DataLoader<unknown, unknown, unknown>;
-    userSubscribedToDataloader: DataLoader<unknown, unknown, unknown>;
-    subscribedToUserDataloader: DataLoader<unknown, unknown, unknown>;
-  } = {
+  const dataloaders: DataloadersType = {
     userDataloader,
     postDataloader,
     profileDataloader,

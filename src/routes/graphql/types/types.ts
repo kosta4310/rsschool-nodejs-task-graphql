@@ -15,6 +15,7 @@ import {
 import { MemberTypeId } from '../../member-types/schemas.js';
 import { UUIDType } from './uuid.js';
 import DataLoader from 'dataloader';
+import { DataloadersType } from '../utilites/getDataloaders.js';
 
 export type PostEntity = { id: string; title: string; content: string; authorId: string };
 export type UserEntity = { id: string; balance: number; name: string };
@@ -33,12 +34,7 @@ type MemberTypeEntity = {
 
 export type ContextValue = {
   fastify: FastifyInstance;
-  dataloaders: {
-    userDataloader: DataLoader<unknown, unknown, unknown>;
-    postDataloader: DataLoader<unknown, unknown, unknown>;
-    profileDataloader: DataLoader<unknown, unknown, unknown>;
-    memberTypesDataloader: DataLoader<unknown, unknown, unknown>;
-  };
+  dataloaders: DataloadersType;
 };
 type SubscribersOnAuthorsEntity = { subscriberId: string; authorId: string };
 
@@ -83,15 +79,21 @@ export const UserType = new GraphQLObjectType({
       resolve: async (
         { id }: UserEntity,
         _args: unknown,
-        { fastify: { prisma } }: ContextValue,
+        { fastify: { prisma }, dataloaders }: ContextValue,
       ) => {
-        const array = await prisma.subscribersOnAuthors.findMany({
-          where: { subscriberId: id },
-        });
+        const array = (await dataloaders.userSubscribedToDataloader.load(id)) as Array<{
+          subscriberId: string;
+          authorId: string;
+        }>;
+        // const array = await prisma.subscribersOnAuthors.findMany({
+        //   where: { subscriberId: id },
+        // });
+
         const arr = array.map(
           (item) => item.authorId,
         ); /*массив ID авторов, на которых подписан юзер*/
-        return await prisma.user.findMany({ where: { id: { in: arr } } });
+        return await dataloaders.userDataloader.loadMany(arr);
+        // return await prisma.user.findMany({ where: { id: { in: arr } } });
       },
     },
 
@@ -100,15 +102,22 @@ export const UserType = new GraphQLObjectType({
       resolve: async (
         { id }: UserEntity,
         _args: unknown,
-        { fastify: { prisma } }: ContextValue,
+        { fastify: { prisma }, dataloaders }: ContextValue,
       ) => {
-        const array = await prisma.subscribersOnAuthors.findMany({
-          where: { authorId: id },
-        });
+        const array = (await dataloaders.subscribedToUserDataloader.load(id)) as Array<{
+          subscriberId: string;
+          authorId: string;
+        }>;
+        // const array = await prisma.subscribersOnAuthors.findMany({
+        //   where: { authorId: id },
+        // });
+
         const arr = array.map(
           (item) => item.subscriberId,
         ); /*массив ID подписчиков на юзера*/
-        return await prisma.user.findMany({ where: { id: { in: arr } } });
+
+        return await dataloaders.userDataloader.loadMany(arr);
+        // return await prisma.user.findMany({ where: { id: { in: arr } } });
       },
     },
   }),
