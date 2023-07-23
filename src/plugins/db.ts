@@ -23,6 +23,7 @@ export default fp(async (fastify) => {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           args,
         });
+
         return query(args).catch(handlePrismaError);
       },
     },

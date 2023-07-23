@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { GraphQLList, GraphQLNonNull, GraphQLObjectType } from 'graphql';
 import {
+  ContextValue,
   MemberTypeIdType,
   MemberTypeType,
   PostType,
   ProfileType,
   UserType,
 } from './types.js';
-import { FastifyInstance } from 'fastify';
 import { UUIDType } from './uuid.js';
 import { MemberTypeId } from '../../member-types/schemas.js';
 
@@ -27,8 +27,17 @@ export const QueryType = new GraphQLObjectType({
 
 const users = {
   type: new GraphQLList(UserType),
-  resolve: async (_source: unknown, _args: unknown, { prisma }: FastifyInstance) => {
-    return await prisma.user.findMany();
+  resolve: async (
+    _source: unknown,
+    _args: unknown,
+    { fastify: { prisma }, dataloaders }: ContextValue,
+  ) => {
+    const users = await prisma.user.findMany();
+
+    users.forEach((user) => {
+      dataloaders.userDataloader.prime(user.id, user);
+    });
+    return users;
   },
 };
 
@@ -38,7 +47,7 @@ const user = {
   resolve: async (
     _source: unknown,
     { id }: { id: string },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     return await prisma.user.findUnique({ where: { id } });
   },
@@ -46,7 +55,11 @@ const user = {
 
 const posts = {
   type: new GraphQLList(PostType),
-  resolve: async (_source: unknown, args: unknown, { prisma }: FastifyInstance) => {
+  resolve: async (
+    _source: unknown,
+    _args: unknown,
+    { fastify: { prisma } }: ContextValue,
+  ) => {
     return await prisma.post.findMany();
   },
 };
@@ -57,7 +70,7 @@ const post = {
   resolve: async (
     _source: unknown,
     { id }: { id: string },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     return await prisma.post.findUnique({ where: { id } });
   },
@@ -65,7 +78,11 @@ const post = {
 
 const memberTypes = {
   type: new GraphQLList(MemberTypeType),
-  resolve: async (_source: unknown, _args: unknown, { prisma }: FastifyInstance) => {
+  resolve: async (
+    _source: unknown,
+    _args: unknown,
+    { fastify: { prisma } }: ContextValue,
+  ) => {
     return await prisma.memberType.findMany();
   },
 };
@@ -76,7 +93,7 @@ const memberType = {
   resolve: async (
     _source: unknown,
     { id }: { id: MemberTypeId },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     return await prisma.memberType.findUnique({ where: { id } });
   },
@@ -84,7 +101,11 @@ const memberType = {
 
 const profiles = {
   type: new GraphQLList(ProfileType),
-  resolve: async (_source: unknown, args: unknown, { prisma }: FastifyInstance) => {
+  resolve: async (
+    _source: unknown,
+    args: unknown,
+    { fastify: { prisma } }: ContextValue,
+  ) => {
     return await prisma.profile.findMany();
   },
 };
@@ -95,7 +116,7 @@ const profile = {
   resolve: async (
     _source: unknown,
     { id }: { id: string },
-    { prisma }: FastifyInstance,
+    { fastify: { prisma } }: ContextValue,
   ) => {
     return await prisma.profile.findUnique({ where: { id } });
   },
