@@ -8,7 +8,6 @@ import {
   ProfileType,
   UserType,
 } from './types.js';
-import { FastifyInstance } from 'fastify';
 import { UUIDType } from './uuid.js';
 import { MemberTypeId } from '../../member-types/schemas.js';
 
@@ -31,9 +30,14 @@ const users = {
   resolve: async (
     _source: unknown,
     _args: unknown,
-    { fastify: { prisma } }: ContextValue,
+    { fastify: { prisma }, dataloaders }: ContextValue,
   ) => {
-    return await prisma.user.findMany();
+    const users = await prisma.user.findMany();
+
+    users.forEach((user) => {
+      dataloaders.userDataloader.prime(user.id, user);
+    });
+    return users;
   },
 };
 
@@ -53,7 +57,7 @@ const posts = {
   type: new GraphQLList(PostType),
   resolve: async (
     _source: unknown,
-    args: unknown,
+    _args: unknown,
     { fastify: { prisma } }: ContextValue,
   ) => {
     return await prisma.post.findMany();

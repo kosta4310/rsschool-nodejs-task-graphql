@@ -14,7 +14,6 @@ import {
 } from 'graphql';
 import { MemberTypeId } from '../../member-types/schemas.js';
 import { UUIDType } from './uuid.js';
-import DataLoader from 'dataloader';
 import { DataloadersType } from '../utilites/getDataloaders.js';
 
 export type PostEntity = { id: string; title: string; content: string; authorId: string };
@@ -46,6 +45,8 @@ export const MemberTypeIdType = new GraphQLEnumType({
   },
 });
 
+// Models
+
 export const UserType = new GraphQLObjectType({
   name: 'User',
   fields: () => ({
@@ -57,9 +58,8 @@ export const UserType = new GraphQLObjectType({
       resolve: async (
         { id }: UserEntity,
         _args: unknown,
-        { fastify: { prisma }, dataloaders }: ContextValue,
+        { dataloaders }: ContextValue,
       ) => {
-        // return await prisma.post.findMany({ where: { authorId: id } });
         return await dataloaders.postDataloader.load(id);
       },
     },
@@ -68,9 +68,8 @@ export const UserType = new GraphQLObjectType({
       resolve: async (
         { id }: UserEntity,
         _args: unknown,
-        { fastify: { prisma }, dataloaders }: ContextValue,
+        { dataloaders }: ContextValue,
       ) => {
-        // return await prisma.profile.findUnique({ where: { userId: id } });
         return await dataloaders.profileDataloader.load(id);
       },
     },
@@ -79,21 +78,18 @@ export const UserType = new GraphQLObjectType({
       resolve: async (
         { id }: UserEntity,
         _args: unknown,
-        { fastify: { prisma }, dataloaders }: ContextValue,
+        { dataloaders }: ContextValue,
       ) => {
         const array = (await dataloaders.userSubscribedToDataloader.load(id)) as Array<{
           subscriberId: string;
           authorId: string;
         }>;
-        // const array = await prisma.subscribersOnAuthors.findMany({
-        //   where: { subscriberId: id },
-        // });
 
         const arr = array.map(
           (item) => item.authorId,
         ); /*массив ID авторов, на которых подписан юзер*/
+
         return await dataloaders.userDataloader.loadMany(arr);
-        // return await prisma.user.findMany({ where: { id: { in: arr } } });
       },
     },
 
@@ -102,22 +98,18 @@ export const UserType = new GraphQLObjectType({
       resolve: async (
         { id }: UserEntity,
         _args: unknown,
-        { fastify: { prisma }, dataloaders }: ContextValue,
+        { dataloaders }: ContextValue,
       ) => {
         const array = (await dataloaders.subscribedToUserDataloader.load(id)) as Array<{
           subscriberId: string;
           authorId: string;
         }>;
-        // const array = await prisma.subscribersOnAuthors.findMany({
-        //   where: { authorId: id },
-        // });
 
         const arr = array.map(
           (item) => item.subscriberId,
         ); /*массив ID подписчиков на юзера*/
 
         return await dataloaders.userDataloader.loadMany(arr);
-        // return await prisma.user.findMany({ where: { id: { in: arr } } });
       },
     },
   }),
@@ -175,9 +167,9 @@ export const ProfileType = new GraphQLObjectType({
       resolve: async (
         { userId }: ProfileEntity,
         _args: unknown,
-        { fastify: { prisma } }: ContextValue,
+        { dataloaders }: ContextValue,
       ) => {
-        return await prisma.user.findUnique({ where: { id: userId } });
+        return await dataloaders.userDataloader.load(userId);
       },
     },
     memberType: {
@@ -185,9 +177,9 @@ export const ProfileType = new GraphQLObjectType({
       resolve: async (
         { memberTypeId }: ProfileEntity,
         _args: unknown,
-        { fastify: { prisma } }: ContextValue,
+        { dataloaders }: ContextValue,
       ) => {
-        return await prisma.memberType.findUnique({ where: { id: memberTypeId } });
+        return await dataloaders.memberTypesDataloader.load(memberTypeId);
       },
     },
   }),

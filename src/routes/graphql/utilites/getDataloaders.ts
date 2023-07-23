@@ -1,5 +1,4 @@
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { GetResult } from '@prisma/client/runtime/library.js';
 import DataLoader from 'dataloader';
 import { FastifyBaseLogger, FastifyInstance, RawServerDefault } from 'fastify';
 import { IncomingMessage, ServerResponse } from 'node:http';
@@ -25,10 +24,8 @@ export function getDataloaders(
     const results = await fastify.prisma.user.findMany({
       where: { id: { in: keys as Array<string> } },
     });
-    return (keys as Array<string>).map(
-      (key) =>
-        results.find((user) => user.id === key) || new Error(`No result for ${key}`),
-    );
+
+    return (keys as Array<string>).map((key) => results.find((user) => user.id === key));
   }
 
   async function postBatchFunction(userIds: unknown) {
@@ -50,14 +47,12 @@ export function getDataloaders(
     );
   }
 
-  async function memberTypesBatchFunction(keys: unknown) {
+  async function memberTypesBatchFunction(memberTypesIds: unknown) {
     const results = await fastify.prisma.memberType.findMany({
-      where: { id: { in: keys as Array<string> } },
+      where: { id: { in: memberTypesIds as Array<string> } },
     });
-    return (keys as Array<string>).map(
-      (key) =>
-        results.find((memberType) => memberType.id === key) ||
-        new Error(`No result for ${key}`),
+    return (memberTypesIds as Array<string>).map((key) =>
+      results.find((memberType) => memberType.id === key),
     );
   }
 
@@ -96,11 +91,6 @@ export function getDataloaders(
     userSubscribedToDataloader,
     subscribedToUserDataloader,
   };
-
-  // dataloaders.userDataloader = userDataloader;
-  // dataloaders.postDataloader = postDataloader;
-  // dataloaders.profileDataloader = profileDataloader;
-  // dataloaders.memberTypesDataloader = memberTypesDataloader;
 
   return dataloaders;
 }
