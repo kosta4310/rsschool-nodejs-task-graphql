@@ -16,6 +16,11 @@ import { MemberTypeId } from '../../member-types/schemas.js';
 import { UUIDType } from './uuid.js';
 import { DataloadersType } from '../utilites/getDataloaders.js';
 
+type User = UserEntity & {
+  userSubscribedTo: Array<{ author: User }>;
+  subscribedToUser: Array<{ subscriber: User }>;
+  posts: PostEntity;
+};
 export type PostEntity = { id: string; title: string; content: string; authorId: string };
 export type UserEntity = { id: string; balance: number; name: string };
 export type ProfileEntity = {
@@ -80,16 +85,20 @@ export const UserType = new GraphQLObjectType({
         _args: unknown,
         { dataloaders }: ContextValue,
       ) => {
-        const array = (await dataloaders.userSubscribedToDataloader.load(id)) as Array<{
-          subscriberId: string;
-          authorId: string;
-        }>;
+        const user = (await dataloaders.userDataloader.load(id)) as User;
+        const res = user.userSubscribedTo.map((item) => item.author);
+        return res;
+        // const array = (await dataloaders.userSubscribedToDataloader.load(id)) as Array<{
+        //   subscriberId: string;
+        //   authorId: string;
+        // }>;
 
-        const arr = array.map(
-          (item) => item.authorId,
-        ); /*массив ID авторов, на которых подписан юзер*/
+        /*массив ID авторов, на которых подписан юзер*/
+        // const arr = array.map(
+        //   (item) => item.authorId,
+        // );
 
-        return await dataloaders.userDataloader.loadMany(arr);
+        // return await dataloaders.userDataloader.loadMany(arr);
       },
     },
 
@@ -100,16 +109,22 @@ export const UserType = new GraphQLObjectType({
         _args: unknown,
         { dataloaders }: ContextValue,
       ) => {
-        const array = (await dataloaders.subscribedToUserDataloader.load(id)) as Array<{
-          subscriberId: string;
-          authorId: string;
-        }>;
+        const user = (await dataloaders.userDataloader.load(id)) as User;
 
-        const arr = array.map(
-          (item) => item.subscriberId,
-        ); /*массив ID подписчиков на юзера*/
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return user.subscribedToUser.map((item) => item.subscriber);
 
-        return await dataloaders.userDataloader.loadMany(arr);
+        // const array = (await dataloaders.subscribedToUserDataloader.load(id)) as Array<{
+        //   subscriberId: string;
+        //   authorId: string;
+        // }>;
+
+        /*массив ID подписчиков на юзера*/
+        // const arr = array.map(
+        //   (item) => item.subscriberId,
+        // );
+
+        // return await dataloaders.userDataloader.loadMany(arr);
       },
     },
   }),

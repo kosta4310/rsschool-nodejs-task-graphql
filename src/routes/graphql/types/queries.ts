@@ -1,15 +1,27 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { GraphQLList, GraphQLNonNull, GraphQLObjectType } from 'graphql';
+import {
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLResolveInfo,
+} from 'graphql';
 import {
   ContextValue,
   MemberTypeIdType,
   MemberTypeType,
   PostType,
   ProfileType,
+  UserEntity,
   UserType,
 } from './types.js';
 import { UUIDType } from './uuid.js';
 import { MemberTypeId } from '../../member-types/schemas.js';
+import {
+  ResolveTree,
+  parseResolveInfo,
+  simplifyParsedResolveInfoFragmentWithType,
+} from 'graphql-parse-resolve-info';
+import { User } from '@prisma/client';
 
 export const QueryType = new GraphQLObjectType({
   name: 'Query',
@@ -31,12 +43,55 @@ const users = {
     _source: unknown,
     _args: unknown,
     { fastify: { prisma }, dataloaders }: ContextValue,
+    resolveInfo: GraphQLResolveInfo,
   ) => {
-    const users = await prisma.user.findMany();
+    const parsedResolveInfoFragment = parseResolveInfo(resolveInfo);
+    const { fields } = simplifyParsedResolveInfoFragmentWithType(
+      parsedResolveInfoFragment as ResolveTree,
+      new GraphQLList(UserType),
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { subscribedToUser, userSubscribedTo } = fields as {
+      subscribedToUser?: object;
+      userSubscribedTo?: object;
+    };
+
+    const getUsers = new Promise((resolve, reject) => {
+      let users;
+      if (subscribedToUser && userSubscribedTo) {
+        users = prisma.user.findMany({
+          include: {
+            subscribedToUser: { include: { subscriber: true } },
+            userSubscribedTo: { include: { author: true } },
+          },
+        });
+      } else if (subscribedToUser && !userSubscribedTo) {
+        users = prisma.user.findMany({
+          include: {
+            subscribedToUser: { include: { subscriber: true } },
+          },
+        });
+      } else if (!subscribedToUser && userSubscribedTo) {
+        users = prisma.user.findMany({
+          include: {
+            userSubscribedTo: { include: { author: true } },
+          },
+        });
+      } else {
+        users = prisma.user.findMany({});
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return resolve(users);
+    });
+
+    const users = (await getUsers) as Array<User>;
 
     users.forEach((user) => {
       dataloaders.userDataloader.prime(user.id, user);
     });
+
     return users;
   },
 };
@@ -47,9 +102,32 @@ const user = {
   resolve: async (
     _source: unknown,
     { id }: { id: string },
-    { fastify: { prisma } }: ContextValue,
+    { fastify: { prisma }, dataloaders }: ContextValue,
+    resolveInfo: GraphQLResolveInfo,
   ) => {
-    return await prisma.user.findUnique({ where: { id } });
+    const parsedResolveInfoFragment = parseResolveInfo(resolveInfo);
+    const { fields } = simplifyParsedResolveInfoFragmentWithType(
+      parsedResolveInfoFragment as ResolveTree,
+      new GraphQLList(UserType),
+    );
+
+    const { subscribedToUser, userSubscribedTo } = fields as {
+      subscribedToUser?: object;
+      userSubscribedTo?: object;
+    };
+
+    const users = await prisma.user.findMany({
+      include: {
+        subscribedToUser: subscribedToUser ? { include: { subscriber: true } } : false,
+        userSubscribedTo: userSubscribedTo ? { include: { author: true } } : false,
+      },
+    });
+
+    users.forEach((user) => {
+      dataloaders.userDataloader.prime(user.id, user);
+    });
+
+    return await dataloaders.userDataloader.load(id);
   },
 };
 
