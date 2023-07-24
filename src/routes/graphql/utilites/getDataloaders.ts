@@ -8,8 +8,6 @@ export type DataloadersType = {
   postDataloader: DataLoader<unknown, unknown, unknown>;
   profileDataloader: DataLoader<unknown, unknown, unknown>;
   memberTypesDataloader: DataLoader<unknown, unknown, unknown>;
-  userSubscribedToDataloader: DataLoader<unknown, unknown, unknown>;
-  subscribedToUserDataloader: DataLoader<unknown, unknown, unknown>;
 };
 export function getDataloaders(
   fastify: FastifyInstance<
@@ -80,16 +78,12 @@ export function getDataloaders(
   const postDataloader = new DataLoader(postBatchFunction);
   const profileDataloader = new DataLoader(profileBatchFunction);
   const memberTypesDataloader = new DataLoader(memberTypesBatchFunction);
-  const userSubscribedToDataloader = new DataLoader(userSubscribedToBatchFunction);
-  const subscribedToUserDataloader = new DataLoader(subscribedToUserBatchFunction);
 
   const dataloaders: DataloadersType = {
     userDataloader,
     postDataloader,
     profileDataloader,
     memberTypesDataloader,
-    userSubscribedToDataloader,
-    subscribedToUserDataloader,
   };
 
   return dataloaders;
