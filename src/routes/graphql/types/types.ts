@@ -188,34 +188,6 @@ export const ProfileType = new GraphQLObjectType({
   }),
 });
 
-const SubscribersOnAuthorsType = new GraphQLObjectType({
-  name: 'SubscribersOnAuthors',
-  fields: () => ({
-    subscriberId: { type: GraphQLID },
-    authorId: { type: GraphQLID },
-    subscriber: {
-      type: UserType,
-      resolve: async (
-        { subscriberId }: SubscribersOnAuthorsEntity,
-        _args: unknown,
-        { fastify: { prisma } }: ContextValue,
-      ) => {
-        return await prisma.user.findUnique({ where: { id: subscriberId } });
-      },
-    },
-    author: {
-      type: UserType,
-      resolve: async (
-        { authorId }: SubscribersOnAuthorsEntity,
-        _args: unknown,
-        { fastify: { prisma } }: ContextValue,
-      ) => {
-        return await prisma.user.findUnique({ where: { id: authorId } });
-      },
-    },
-  }),
-});
-
 // input types
 
 export const CreateUserInputType = new GraphQLInputObjectType({
