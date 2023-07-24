@@ -91,8 +91,8 @@ const user = {
 
     const users = await prisma.user.findMany({
       include: {
-        subscribedToUser: subscribedToUser ? { include: { subscriber: true } } : false,
-        userSubscribedTo: userSubscribedTo ? { include: { author: true } } : false,
+        subscribedToUser: subscribedToUser ? true : false,
+        userSubscribedTo: userSubscribedTo ? true : false,
       },
     });
 

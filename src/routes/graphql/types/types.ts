@@ -40,7 +40,6 @@ export type ContextValue = {
   fastify: FastifyInstance;
   dataloaders: DataloadersType;
 };
-type SubscribersOnAuthorsEntity = { subscriberId: string; authorId: string };
 
 export const MemberTypeIdType = new GraphQLEnumType({
   name: 'MemberTypeId',

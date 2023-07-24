@@ -54,26 +54,6 @@ export function getDataloaders(
     );
   }
 
-  async function userSubscribedToBatchFunction(userIds: unknown) {
-    const results = await fastify.prisma.subscribersOnAuthors.findMany({
-      where: { subscriberId: { in: userIds as Array<string> } },
-    });
-
-    return (userIds as Array<string>).map((userId) =>
-      results.filter(({ subscriberId }) => subscriberId === userId),
-    );
-  }
-
-  async function subscribedToUserBatchFunction(userIds: unknown) {
-    const results = await fastify.prisma.subscribersOnAuthors.findMany({
-      where: { authorId: { in: userIds as Array<string> } },
-    });
-
-    return (userIds as Array<string>).map((userId) =>
-      results.filter(({ authorId }) => authorId === userId),
-    );
-  }
-
   const userDataloader = new DataLoader(userBatchFunction);
   const postDataloader = new DataLoader(postBatchFunction);
   const profileDataloader = new DataLoader(profileBatchFunction);
