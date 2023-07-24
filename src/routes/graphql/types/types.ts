@@ -17,10 +17,10 @@ import { UUIDType } from './uuid.js';
 import { DataloadersType } from '../utilites/getDataloaders.js';
 
 type User = UserEntity & {
-  userSubscribedTo: Array<{ author: User }>;
-  subscribedToUser: Array<{ subscriber: User }>;
-  posts: PostEntity;
+  userSubscribedTo: Array<{ subscriberId: string; authorId: string }>;
+  subscribedToUser: Array<{ subscriberId: string; authorId: string }>;
 };
+
 export type PostEntity = { id: string; title: string; content: string; authorId: string };
 export type UserEntity = { id: string; balance: number; name: string };
 export type ProfileEntity = {
@@ -86,19 +86,14 @@ export const UserType = new GraphQLObjectType({
         { dataloaders }: ContextValue,
       ) => {
         const user = (await dataloaders.userDataloader.load(id)) as User;
-        const res = user.userSubscribedTo.map((item) => item.author);
+
+        const arrayUserSubTo = user.userSubscribedTo.map((item) => {
+          return dataloaders.userDataloader.load(item.authorId);
+        });
+
+        const res = await Promise.all(arrayUserSubTo);
+
         return res;
-        // const array = (await dataloaders.userSubscribedToDataloader.load(id)) as Array<{
-        //   subscriberId: string;
-        //   authorId: string;
-        // }>;
-
-        /*массив ID авторов, на которых подписан юзер*/
-        // const arr = array.map(
-        //   (item) => item.authorId,
-        // );
-
-        // return await dataloaders.userDataloader.loadMany(arr);
       },
     },
 
@@ -111,20 +106,13 @@ export const UserType = new GraphQLObjectType({
       ) => {
         const user = (await dataloaders.userDataloader.load(id)) as User;
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return user.subscribedToUser.map((item) => item.subscriber);
+        const arraySubToUser = user.subscribedToUser.map((item) => {
+          return dataloaders.userDataloader.load(item.subscriberId);
+        });
 
-        // const array = (await dataloaders.subscribedToUserDataloader.load(id)) as Array<{
-        //   subscriberId: string;
-        //   authorId: string;
-        // }>;
+        const res = await Promise.all(arraySubToUser);
 
-        /*массив ID подписчиков на юзера*/
-        // const arr = array.map(
-        //   (item) => item.subscriberId,
-        // );
-
-        // return await dataloaders.userDataloader.loadMany(arr);
+        return res;
       },
     },
   }),

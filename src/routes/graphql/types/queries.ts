@@ -11,7 +11,6 @@ import {
   MemberTypeType,
   PostType,
   ProfileType,
-  UserEntity,
   UserType,
 } from './types.js';
 import { UUIDType } from './uuid.js';
@@ -21,7 +20,6 @@ import {
   parseResolveInfo,
   simplifyParsedResolveInfoFragmentWithType,
 } from 'graphql-parse-resolve-info';
-import { User } from '@prisma/client';
 
 export const QueryType = new GraphQLObjectType({
   name: 'Query',
@@ -51,42 +49,17 @@ const users = {
       new GraphQLList(UserType),
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { subscribedToUser, userSubscribedTo } = fields as {
       subscribedToUser?: object;
       userSubscribedTo?: object;
     };
 
-    const getUsers = new Promise((resolve, reject) => {
-      let users;
-      if (subscribedToUser && userSubscribedTo) {
-        users = prisma.user.findMany({
-          include: {
-            subscribedToUser: { include: { subscriber: true } },
-            userSubscribedTo: { include: { author: true } },
-          },
-        });
-      } else if (subscribedToUser && !userSubscribedTo) {
-        users = prisma.user.findMany({
-          include: {
-            subscribedToUser: { include: { subscriber: true } },
-          },
-        });
-      } else if (!subscribedToUser && userSubscribedTo) {
-        users = prisma.user.findMany({
-          include: {
-            userSubscribedTo: { include: { author: true } },
-          },
-        });
-      } else {
-        users = prisma.user.findMany({});
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return resolve(users);
+    const users = await prisma.user.findMany({
+      include: {
+        subscribedToUser: subscribedToUser ? true : false,
+        userSubscribedTo: userSubscribedTo ? true : false,
+      },
     });
-
-    const users = (await getUsers) as Array<User>;
 
     users.forEach((user) => {
       dataloaders.userDataloader.prime(user.id, user);
