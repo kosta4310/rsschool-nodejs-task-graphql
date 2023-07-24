@@ -55,6 +55,8 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async handler(req) {
+      console.log('req.body', req.body);
+
       return prisma.user.create({
         data: req.body,
       });
